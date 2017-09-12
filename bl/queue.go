@@ -47,6 +47,8 @@ func (q *TaskQueue) Process() {
 			//TODO: или запилить специальную очередь для проблемных сообщений
 			if err := q.sender.Send(task); err != nil {
 				q.ctx.Log.Warning(consts.SenderMessageWasNotSent, err)
+			} else {
+				q.ctx.Log.Info(fmt.Sprintf("processed: %s", task.To))
 			}
 		}
 		m.Ack(false)

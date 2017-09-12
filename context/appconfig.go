@@ -15,6 +15,7 @@ type AppConfig struct {
 
 	// настройки почтового сервера
 	MailHost string `json:"mail_host"`
+	MailPort string `json:"mail_port"`
 	MailUserName string `json:"mail_user_name"`
 	MailPassword string `json:"mail_password"`
 }

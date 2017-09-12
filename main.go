@@ -4,11 +4,16 @@ import (
 	"github.com/andrushk/mailmq/bl"
 	"github.com/andrushk/mailmq/consts"
 	"github.com/andrushk/mailmq/context"
+	"os"
 )
 
 func main() {
+	if len(os.Args) != 2 {
+		panic(consts.AppArgumentsFailed)
+	}
+
 	appLog := &AppLog{}
-	appConfig, err := context.LoadConfig("mailmq.cfg")
+	appConfig, err := context.LoadConfig(os.Args[1])
 	if err != nil {
 		panic(appLog.Fatal(consts.AppFailedToLoadConfig, err))
 	}

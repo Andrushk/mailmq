@@ -1,0 +1,9 @@
+{
+  "silent_mode": false,
+  "rabbit_mq_host": "amqp://",
+  "rabbit_mq_queue_name": "MailsQueue",
+  "mail_host" : "smtp.mail.ru",
+  "mail_port" : "25",
+  "mail_user_name": "mail@mail.ru",
+  "mail_password": "12345"
+}

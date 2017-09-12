@@ -13,8 +13,7 @@ type SendToLog struct {
 }
 
 func (m *SendToLog) Send(task dto.Task) error {
-	m.Log.Info(fmt.Sprintf("\r\nFrom: %s\r\nTo: %s\r\nSubject: %s\r\nMessage: %s\r\n",
-		task.From,
+	m.Log.Info(fmt.Sprintf("To: %s\r\nSubject: %s\r\nMessage: %s\r\n",
 		task.To,
 		task.Subject,
 		task.Message))
