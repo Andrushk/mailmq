@@ -2,7 +2,7 @@
 
 Настройка (что читать и куда посылать) производится через конфиг-файл. При запуске 'mailmq' необходимо указать параметром имя этого файла. Для примера в проект включен конфиг-файл 'mailmq.cfg.example'.
 
-###### Описание 'mailmq.cfg.example':
+### Описание 'mailmq.cfg.example':
 
 ```
 {
@@ -21,5 +21,18 @@
   "mail_port" : "25",
   "mail_user_name": "mail@mail.ru",
   "mail_password": "12345"
+}
+```
+
+
+### Описание формата сообщений
+
+Сообщения должны представлять собой JSON следующего формата:
+
+```
+{
+  "to":["mail1@mail.ru","mail2@mail.ru"],
+  "subject":"Message subject text",
+  "message":"Message body text"
 }
 ```
