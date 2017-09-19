@@ -8,6 +8,7 @@ import (
 	"crypto/tls"
 	"strings"
 	"net/mail"
+	"github.com/andrushk/mailmq/consts"
 )
 
 // Реализация интерфейса Sender
@@ -40,14 +41,11 @@ func CreateMailSender(ctx *context.AppContext) *MailSender {
 		InsecureSkipVerify: true,
 		ServerName:         smtpServer.Host,
 	}
-	ctx.Log.Info("mail server is: " + smtpServer.ServerName())
-
-	auth := smtp.PlainAuth("", ctx.Cgf.MailUserName, ctx.Cgf.MailPassword, smtpServer.Host)
-	ctx.Log.Info("login to mail server as: " + ctx.Cgf.MailUserName)
+	ctx.Log.Info(fmt.Sprintf(consts.EmailServerNameConfirmation, smtpServer.ServerName()))
 
 	return &MailSender{
-		sender: ctx.Cgf.MailUserName,
-		auth: auth,
+		sender:     ctx.Cgf.MailUserName,
+		auth:       smtp.PlainAuth("", ctx.Cgf.MailUserName, ctx.Cgf.MailPassword, smtpServer.Host),
 		smtpServer: smtpServer}
 }
 
@@ -79,10 +77,17 @@ func (ms *MailSender) Send(task dto.Task) error {
 	msg.Subject = task.Subject
 	msg.Body = task.Message
 
+	// Есть замечательный и простой способ отправить мэйл:
+	// smtp.SendMail(ms.smtpServer.ServerName(), ms.auth, ms.sender, task.To, []byte(msg.BuildMessage()))
+	// но на ubuntu им не получается воспользоваться, возникает ошибка: x509: certificate signed by unknown authority
+	// чтобы ее забороть необходимо для TlsConfig установить параметр: InsecureSkipVerify: true
+	// поэтому приходится городить огород ниже:
+
 	conn, err := smtp.Dial(ms.smtpServer.ServerName())
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	err = conn.StartTLS(ms.smtpServer.TlsConfig)
 	if err != nil {
@@ -121,6 +126,4 @@ func (ms *MailSender) Send(task dto.Task) error {
 		return err
 	}
 	return conn.Quit()
-
-	//return smtp.SendMail(ms.smtpServer.ServerName(), ms.auth, ms.sender, task.To, []byte(msg.BuildMessage()))
 }
