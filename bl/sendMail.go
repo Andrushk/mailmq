@@ -40,8 +40,10 @@ func CreateMailSender(ctx *context.AppContext) *MailSender {
 		InsecureSkipVerify: true,
 		ServerName:         smtpServer.Host,
 	}
+	ctx.Log.Info("mail server is: " + smtpServer.ServerName())
 
 	auth := smtp.PlainAuth("", ctx.Cgf.MailUserName, ctx.Cgf.MailPassword, smtpServer.Host)
+	ctx.Log.Info("login to mail server as: " + ctx.Cgf.MailUserName)
 
 	return &MailSender{
 		sender: ctx.Cgf.MailUserName,
@@ -77,5 +79,48 @@ func (ms *MailSender) Send(task dto.Task) error {
 	msg.Subject = task.Subject
 	msg.Body = task.Message
 
-	return smtp.SendMail(ms.smtpServer.ServerName(), ms.auth, ms.sender, task.To, []byte(msg.BuildMessage()))
+	conn, err := smtp.Dial(ms.smtpServer.ServerName())
+	if err != nil {
+		return err
+	}
+
+	err = conn.StartTLS(ms.smtpServer.TlsConfig)
+	if err != nil {
+		return err
+	}
+
+	// Auth
+	if err = conn.Auth(ms.auth); err != nil {
+		return err
+	}
+
+	// To && From
+	if err = conn.Mail(ms.sender); err != nil {
+		return err
+	}
+
+	for _, addr := range task.To {
+		if err = conn.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+
+	// Data
+	w, err := conn.Data()
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write([]byte(msg.BuildMessage()))
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return conn.Quit()
+
+	//return smtp.SendMail(ms.smtpServer.ServerName(), ms.auth, ms.sender, task.To, []byte(msg.BuildMessage()))
 }
